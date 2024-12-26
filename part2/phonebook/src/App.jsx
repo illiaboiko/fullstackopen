@@ -4,12 +4,27 @@ import InputForm from "./components/InputForm";
 import Persons from "./components/Persons";
 import axios from "axios";
 import personsService from "./services/persons";
+import Notification from "./components/Notification";
 
 const App = () => {
   const [persons, setPersons] = useState([]);
   const [newName, setNewName] = useState("");
   const [newPhone, setNewPhone] = useState("");
   const [filterQuery, setFilterQuery] = useState("");
+  const [notification, setNotification] = useState({
+    type: null,
+    message: null,
+  });
+
+  const showNotification = (type, message) => {
+    setNotification({
+      type: type,
+      message: message,
+    });
+    setTimeout(() => {
+      setNotification({ type: null, message: null });
+    }, 5000);
+  };
 
   useEffect(() => {
     axios.get("http://localhost:3001/persons").then((response) => {
@@ -39,8 +54,11 @@ const App = () => {
         .createPerson(newPersonObj)
         .then((newPerson) => {
           setPersons(persons.concat(newPerson));
+          showNotification("success", `${newPerson.name} has been added!`);
         })
-        .catch((error) => alert("failed to add person", error));
+        .catch((error) =>
+          showNotification("error", "failed to add the person..")
+        );
     } else {
       if (
         window.confirm(
@@ -50,27 +68,24 @@ const App = () => {
         const dublicatePerson = persons.find(
           (p) => p.name === newPersonObj.name
         );
-        const id = dublicatePerson.id
+        const id = dublicatePerson.id;
         personsService
           .updatePerson(id, newPersonObj)
           .then((returnedPerson) => {
-            setPersons(
-              persons.map((p) =>
-                p.id === id ? returnedPerson : p
-              )
+            setPersons(persons.map((p) => (p.id === id ? returnedPerson : p)));
+            showNotification(
+              "success",
+              `${returnedPerson.name}'s phone number has been updated`
             );
           })
-          .catch((error) => alert("failed to update the person", error));
+          .catch((error) =>
+            showNotification(
+              "error",
+              `Information of ${newPersonObj.name} has already been removed from server`
+            )
+          );
       }
     }
-
-    // const isUnique = !persons.some((person) =>
-    //   areTheseObjectsEqual(person, newPersonObj)
-    // );
-
-    // isUnique
-    //   ? setPersons([...persons, newPersonObj])
-    //   : alert(`${newName} is already in phone book`);
 
     setNewName("");
     setNewPhone("");
@@ -82,8 +97,16 @@ const App = () => {
         .deletePerson(id)
         .then((deletedPerson) => {
           setPersons(persons.filter((p) => p.id !== deletedPerson.id));
+          showNotification("success", `Deleted successfully`);
         })
-        .catch((error) => alert("failed to delete person", error));
+        .catch((error) =>
+          showNotification(
+            "error",
+            `Information of ${
+              persons.find((p) => p.id === id).name
+            } has already been removed from server`
+          )
+        );
     }
   };
 
@@ -108,9 +131,11 @@ const App = () => {
             .includes(filterQuery.toLocaleLowerCase())
         );
   console.log("render", persons);
+
   return (
     <div>
       <h2>Phonebook</h2>
+      <Notification notification={notification} />
       <Filter onChange={handleFilterQueryChange} value={filterQuery} />
 
       <InputForm
