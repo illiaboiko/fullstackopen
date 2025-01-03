@@ -57,7 +57,7 @@ const App = () => {
           showNotification("success", `${newPerson.name} has been added!`);
         })
         .catch((error) =>
-          showNotification("error", "failed to add the person..")
+          showNotification("error", `failed to add the person..\n ${error.response.data.error}`)
         );
     } else {
       if (
@@ -130,7 +130,6 @@ const App = () => {
             .toLocaleLowerCase()
             .includes(filterQuery.toLocaleLowerCase())
         );
-  console.log("render", persons);
 
   return (
     <div>

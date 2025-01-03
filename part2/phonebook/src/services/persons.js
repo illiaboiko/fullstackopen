@@ -9,7 +9,9 @@ function getAllPersons() {
 
 function createPerson(obj) {
   const request = axios.post(baseUrl, obj);
-  return request.then((response) => response.data);
+  return request
+    .then((response) => response.data)
+    // .catch((error) => console.log(error.response.data.error));
 }
 
 function deletePerson(id) {
